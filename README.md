@@ -179,6 +179,6 @@ It includes code from:
 - MOSFHET (Apache License 2.0, Copyright 2022 Antonio Guimarães et al.)
 - OpenFHE (BSD-2-Clause, Copyright (c) 2022, OpenFHE)
 
-This repository introduces the following modification by LG Electronics, Inc. 2025:
+This repository introduces the following modifications by LG Electronics, Inc. 2025:
 - Added procedure to compute the incomplete NTT using two quadratic parts
 - Changed the encoding procedure for better rounding 
