@@ -1,6 +1,6 @@
-Copyright 2023 Antonio Guimarães et al.
-Copyright 2025 LG Electronics, Inc.
-SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 Antonio Guimarães et al.
+// Copyright 2025 LG Electronics, Inc.
+// SPDX-License-Identifier: Apache-2.0
 
 #include "rns-gsw.h"
 #include "benchmark_util.h"
