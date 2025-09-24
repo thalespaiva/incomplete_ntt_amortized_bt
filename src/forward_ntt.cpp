@@ -1,5 +1,7 @@
 #include "rns-gsw.h"
 
+// #define DEBUG_NTT_PRINT // Prints inputs/outputs of NTT the computations
+
 extern int NTT_INCOMPLETENESS;
 
 void bit_rev_list(uint64_t * out, uint64_t * in, uint64_t n){
@@ -47,7 +49,6 @@ void entry_wise_prod(uint64_t * out, uint64_t * in1, uint64_t * in2, uint64_t n)
 // negacyclic forward ntt
 void nc_ntt_forward_old(uint64_t * out, uint64_t * in, uint64_t rou_2nth, uint64_t q, uint64_t n){
   uint64_t rou_vec[n], in2[n];
-  // memcpy(in2, in, sizeof(*in)*n);
   calcRootsOfUnit(rou_vec, rou_2nth, q, n);
   entry_wise_prod(in2, in, rou_vec, n);
   const uint64_t rou = intel::hexl::MultiplyMod(rou_2nth, rou_2nth, q);
@@ -65,11 +66,13 @@ void nc_ntt_forward(uint64_t * out, uint64_t * in, uint64_t rou_2nth,
     ntt_in[i] = in[i];
   }
 
-  // printf("in: ");
-  // for (int i = 0; i < n; i++) {
-  //   printf("%d, ", ntt_in[i]);
-  // }
-  // printf("\n");
+#ifdef DEBUG_NTT_PRINT
+  fprintf(stderr, "[nc_ntt_forward] in: ");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(stderr, "%ld, ", ntt_in[i]);
+  }
+  fprintf(stderr, "\n");
+#endif
 
   int n_levels = ilog2(n) - NTT_INCOMPLETENESS;
   int k = ilog2(n);
@@ -91,11 +94,15 @@ void nc_ntt_forward(uint64_t * out, uint64_t * in, uint64_t rou_2nth,
   for (size_t i = 0; i < n; i++) {
     out[i] = ntt_in[i];
   }
-  // printf("out: ");
-  // for (size_t i = 0; i < n; i++) {
-  //   printf("%d, ", out[i]);
-  // }
-  // printf("\n");
+
+#ifdef DEBUG_NTT_PRINT
+  fprintf(stderr, "out: ");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(stderr, "%ld, ", out[i]);
+  }
+  fprintf(stderr, "\n");
+#endif
+
 }
 
 
@@ -108,11 +115,13 @@ void nc_ntt_forward_leveled(uint64_t * out, uint64_t * in, uint64_t rou, size_t 
     ntt_in[i] = in[i];
   }
 
-  // printf("in: ");
-  // for (int i = 0; i < n; i++) {
-  //   printf("%d, ", ntt_in[i]);
-  // }
-  // printf("\n");
+#ifdef DEBUG_NTT_PRINT
+  fprintf(stderr, "in: ");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(stderr, "%ld, ", ntt_in[i]);
+  }
+  fprintf(stderr, "\n");
+#endif
 
   int bit_rev_length = rou_order/2;
 
@@ -136,14 +145,19 @@ void nc_ntt_forward_leveled(uint64_t * out, uint64_t * in, uint64_t rou, size_t 
   for (size_t i = 0; i < n; i++) {
     out[i] = ntt_in[i];
   }
-  // printf("out: ");
-  // for (size_t i = 0; i < n; i++) {
-  //   printf("%d, ", out[i]);
-  // }
-  // printf("\n");
+
+#ifdef DEBUG_NTT_PRINT
+  fprintf(stderr, "out: ");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(stderr, "%ld, ", out[i]);
+  }
+  fprintf(stderr, "\n");
+#endif
+
 }
 
 
+// Computes the inverse incomplete NTT with a parameterized incompleteness level.
 void nc_ntt_inverse_leveled(uint64_t * out, uint64_t * in, uint64_t rou, size_t rou_order,
                             uint64_t Q, uint64_t n, int incompleteness) {
   uint64_t ws[n];
@@ -153,24 +167,22 @@ void nc_ntt_inverse_leveled(uint64_t * out, uint64_t * in, uint64_t rou, size_t 
     ntt_in[i] = in[i];
   }
 
-  // printf("in: ");
-  // for (int i = 0; i < n; i++) {
-  //   printf("%d, ", ntt_in[i]);
-  // }
-  // printf("\n");
+#ifdef DEBUG_NTT_PRINT
+  fprintf(stderr, "[nc_ntt_inverse_leveled] in: ");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(stderr, "%ld, ", ntt_in[i]);
+  }
+  fprintf(stderr, "\n");
+#endif
 
   int bit_rev_length = rou_order/2;
   int n_levels = ilog2(n) - incompleteness;
   int k = ilog2(n);
 
-  // printf("bit_rev_length = %ld : bit_rev_index_for_n = %ld \n", bit_rev_length, bit_rev_index_for_n(bit_rev_length));
-
-  // for (int i = 0; i < n_levels; i++) {
   for (int i = n_levels - 1; i >= 0; i--) {
     int d = 1 << (k - 1 - i);
     for (int j = 0; j < (1 << i); j++) {
 
-      // int phi_idx = bit_rev[bit_rev_index_for_n(n >> incompleteness)][(1 << i) + j];
       int phi_idx = bit_rev[bit_rev_index_for_n(bit_rev_length)][(1 << i) + j];
 
       uint64_t phi = intel::hexl::InverseMod(ws[phi_idx], Q);
@@ -190,9 +202,13 @@ void nc_ntt_inverse_leveled(uint64_t * out, uint64_t * in, uint64_t rou, size_t 
   for (size_t i = 0; i < n; i++) {
     out[i] = intel::hexl::MultiplyMod(ntt_in[i], norm_factor, Q);
   }
-  // printf("out: ");
-  // for (size_t i = 0; i < n; i++) {
-  //   printf("%d, ", out[i]);
-  // }
-  // printf("\n");
+
+#ifdef DEBUG_NTT_PRINT
+  fprintf(stderr, "[nc_ntt_inverse_leveled] out: ");
+  for (size_t i = 0; i < n; i++) {
+    fprintf(stderr, "%ld, ", out[i]);
+  }
+  fprintf(stderr, "\n");
+#endif
+
 }
